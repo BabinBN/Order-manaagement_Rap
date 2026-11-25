@@ -1,0 +1,77 @@
+_schema-version: "3.2"
+ID: Order_Management_System
+description: Order Management System
+version: 0.0.1
+modules:
+- name: Order_Management_System-destination-content
+  type: com.sap.application.content
+  requires:
+  - name: Order_Management_System-destination-service
+    parameters:
+      content-target: true
+  - name: Order_Management_System-repo-host
+    parameters:
+      service-key:
+        name: Order_Management_System-repo-host-key
+  - name: Order_Management_System-auth
+    parameters:
+      service-key:
+        name: Order_Management_System-auth-key
+  parameters:
+    content:
+      instance:
+        destinations:
+        - Name: Order_Management_System_html_repo_host
+          ServiceInstanceName: Order_Management_System-html5-service
+          ServiceKeyName: Order_Management_System-repo-host-key
+          sap.cloud.service: Order_Management_System
+        - Authentication: OAuth2UserTokenExchange
+          Name: Order_Management_System_auth
+          ServiceInstanceName: Order_Management_System-xsuaa-service
+          ServiceKeyName: Order_Management_System-auth-key
+          sap.cloud.service: Order_Management_System
+        existing_destinations_policy: update
+  build-parameters:
+    no-source: true
+resources:
+- name: Order_Management_System-destination-service
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      HTML5Runtime_enabled: true
+      init_data:
+        instance:
+          destinations:
+          - Authentication: NoAuthentication
+            Name: ui5
+            ProxyType: Internet
+            Type: HTTP
+            URL: https://ui5.sap.com
+          existing_destinations_policy: update
+      version: 1.0.0
+    service: destination
+    service-name: Order_Management_System-destination-service
+    service-plan: lite
+- name: Order_Management_System-auth
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      oauth2-configuration:
+        credential-types:
+        - binding-secret
+        - x509
+      tenant-mode: dedicated
+      xsappname: Order_Management_System-${org}-${space}
+    path: ./xs-security.json
+    service: xsuaa
+    service-name: Order_Management_System-xsuaa-service
+    service-plan: application
+- name: Order_Management_System-repo-host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-name: Order_Management_System-html5-service
+    service-plan: app-host
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true
